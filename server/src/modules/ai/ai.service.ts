@@ -41,20 +41,26 @@ export class AiService {
     });
   }
 
-  async generateRooms(file: Express.Multer.File, prompt: string, userId: string) {
+  async generateRooms(file: Express.Multer.File, prompt: string, userId: string, colors: string[] = []) {
     const imageBase64 = file.buffer.toString('base64');
     const mimeType = file.mimetype;
 
     // Upload original floor plan to Cloudinary
     const originalImageUrl = await this.uploadToCloudinary(imageBase64, mimeType, 'floor-plans');
 
+    // Append color preference to prompt if colors are selected
+    let enrichedPrompt = prompt;
+    if (colors.length > 0) {
+      enrichedPrompt += ` Use the following color palette: ${colors.join(', ')}.`;
+    }
+
     let response;
 
     try {
       if (this.provider === 'GEMINI') {
-        response = await this.callGemini(prompt, imageBase64, mimeType);
+        response = await this.callGemini(enrichedPrompt, imageBase64, mimeType);
       } else {
-        response = await this.callPollinations(prompt, imageBase64, mimeType);
+        response = await this.callPollinations(enrichedPrompt, imageBase64, mimeType);
       }
     } catch (err) {
       console.error('AI API error:', err);
@@ -162,6 +168,7 @@ export class AiService {
       'https://gen.pollinations.ai/image/' + encodeURIComponent(prompt),
     );
     url.searchParams.set('model', 'flux-2-dev');
+    // url.searchParams.set('model', 'klein-large');
     url.searchParams.set('width', '1024');
     url.searchParams.set('height', '1024');
     url.searchParams.set('seed', '0');

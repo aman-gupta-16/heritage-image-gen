@@ -23,6 +23,7 @@ export class AiController {
   async generateRooms(
     @UploadedFile() file: Express.Multer.File,
     @Body('prompt') prompt: string,
+    @Body('colors') colors: string,
     @Req() req: any,
   ) {
     if (!file) {
@@ -32,7 +33,16 @@ export class AiController {
       throw new BadRequestException('Prompt is required');
     }
 
-    return this.aiService.generateRooms(file, prompt.trim(), req.user.userId);
+    let parsedColors: string[] = [];
+    if (colors) {
+      try {
+        parsedColors = JSON.parse(colors);
+      } catch {
+        // ignore malformed colors
+      }
+    }
+
+    return this.aiService.generateRooms(file, prompt.trim(), req.user.userId, parsedColors);
   }
 
   @Get('history')
