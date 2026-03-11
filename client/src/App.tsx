@@ -6,6 +6,8 @@ import PromptInput from "./components/PromptInput";
 import GenerateButton from "./components/GenerateButton";
 import ImageGallery from "./components/ImageGallery";
 import ChatHistory, { ChatDetail } from "./components/ChatHistory";
+import ColorSelector from "./components/ColorSelector";
+import ImageCropper from "./components/ImageCropper";
 import { useAuth } from "./context/AuthContext";
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
   const [history, setHistory] = useState<ChatEntry[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [showCropper, setShowCropper] = useState(false);
 
   // Load history from API on mount
   useEffect(() => {
@@ -55,6 +59,12 @@ function App() {
     setResults([]);
   }, []);
 
+  const handleCropDone = useCallback((croppedFile: File, croppedPreview: string) => {
+    setFile(croppedFile);
+    setPreview(croppedPreview);
+    setShowCropper(false);
+  }, []);
+
   const handleGenerate = async () => {
     if (!file || !prompt.trim()) return;
     setLoading(true);
@@ -65,6 +75,9 @@ function App() {
       const formData = new FormData();
       formData.append("prompt", prompt.trim());
       formData.append("image", file);
+      if (selectedColors.length > 0) {
+        formData.append("colors", JSON.stringify(selectedColors));
+      }
 
       const token = localStorage.getItem("token");
       const res = await fetch("/ai/generate-rooms", {
@@ -107,6 +120,7 @@ function App() {
     setPrompt("");
     setResults([]);
     setSelectedId(null);
+    setSelectedColors([]);
   };
 
   const showInputArea = !selectedEntry;
@@ -198,7 +212,7 @@ function App() {
 
               {(preview || results.length > 0) && (
                 <div className="flex-1 flex flex-col gap-6">
-                  {preview && <FloorPlanUploader file={file} preview={preview} onFileSelect={handleFileSelect} onClear={handleClearFile} />}
+                  {preview && <FloorPlanUploader file={file} preview={preview} onFileSelect={handleFileSelect} onClear={handleClearFile} onEdit={() => setShowCropper(true)} />}
                   {results.length > 0 && (
                     <div className="space-y-3">
                       <h3 className="text-sm font-semibold text-gray-700">Generated Rooms</h3>
@@ -221,8 +235,13 @@ function App() {
                   preview={preview}
                   onFileSelect={handleFileSelect}
                   onClear={handleClearFile}
+                  onEdit={() => setShowCropper(true)}
                 />
               )}
+              <ColorSelector
+                selectedColors={selectedColors}
+                onChange={setSelectedColors}
+              />
               <div className="flex gap-3 items-end">
                 <div className="flex-1">
                   <PromptInput
@@ -242,6 +261,15 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Image Cropper Modal */}
+      {showCropper && preview && (
+        <ImageCropper
+          imageSrc={preview}
+          onCropDone={handleCropDone}
+          onCancel={() => setShowCropper(false)}
+        />
+      )}
     </div>
   );
 }

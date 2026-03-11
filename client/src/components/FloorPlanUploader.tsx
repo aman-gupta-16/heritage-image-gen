@@ -5,6 +5,7 @@ interface FloorPlanUploaderProps {
   preview: string | null;
   onFileSelect: (file: File, preview: string) => void;
   onClear: () => void;
+  onEdit?: () => void;
 }
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/jpg"];
@@ -14,6 +15,7 @@ export default function FloorPlanUploader({
   preview,
   onFileSelect,
   onClear,
+  onEdit,
 }: FloorPlanUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -66,6 +68,18 @@ export default function FloorPlanUploader({
           <span className="bg-white/90 text-xs text-gray-600 px-2 py-1 rounded-md shadow-sm">
             {file?.name}
           </span>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="bg-white/90 hover:bg-indigo-50 text-gray-500 hover:text-indigo-600 p-1.5 rounded-md shadow-sm transition-colors cursor-pointer"
+              aria-label="Crop image"
+              title="Crop / Edit"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v4a1 1 0 001 1h3m10 0h3a1 1 0 001-1V7m-4 10v3a1 1 0 01-1 1H7a1 1 0 01-1-1v-3M7 3h10a1 1 0 011 1v3M3 7a1 1 0 011-1h3" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={onClear}
             className="bg-white/90 hover:bg-red-50 text-gray-500 hover:text-red-500 p-1.5 rounded-md shadow-sm transition-colors cursor-pointer"
