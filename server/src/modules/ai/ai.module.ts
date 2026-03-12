@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AiController } from './ai.controller.js';
 import { AiService } from './ai.service.js';
+import { CloudinaryHelper } from './cloudinary.helper.js';
+import { GeminiProvider } from './gemini.provider.js';
+import { PollinationsProvider } from './pollinations.provider.js';
 import {
   Generation,
   GenerationSchema,
@@ -14,6 +17,6 @@ import {
     ]),
   ],
   controllers: [AiController],
-  providers: [AiService],
+  providers: [AiService, CloudinaryHelper, GeminiProvider, PollinationsProvider],
 })
 export class AiModule {}
